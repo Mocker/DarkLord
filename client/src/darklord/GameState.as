@@ -16,25 +16,26 @@ package darklord
 	{
 		private var scene:Scene3D;
 		private var view:View3D;
-		public function GameState()
+		public function GameState():void
 		{
 			super();
 		}
 		
-		private function init(scene,view)
+		public function init(view:View3D):void
 		{
-			this.scene = scene;
+			this.scene = view.scene;
 			this.view = view;
 		}
 		
-		public function update()
+		
+		public function update():void
 		{
 			
 		}
 		
-		public function render()
+		public function render():void
 		{
-			
+			view.render();
 		}
 	}
 }
