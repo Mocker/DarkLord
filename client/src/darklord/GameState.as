@@ -12,17 +12,23 @@ package darklord
 	
 	import away3d.containers.Scene3D;
 	import away3d.containers.View3D;
-
+	
+	import flash.display.Sprite;
 	import flash.events.Event;
 
 		
-	public class GameState
+	public class GameState extends Sprite
 	{
 		private var scene:Scene3D;
 		private var view:View3D;
-		public function GameState():void
+		public var eng:Engine;
+		public function GameState(engine:Engine):void
 		{
 			super();
+			this.eng = engine;
+			this.mouseEnabled = true;
+			this.mouseChildren = true;
+			this.name = "game state";
 		}
 		
 		public function init(view:View3D):void
@@ -69,11 +75,15 @@ package darklord
 		}
 		
 		//place holders for network events
-		public function onNetConnect():void
+		public function onNetConnect(ev):void
 		{
 			
 		}
-		public function onNetMSG():void
+		public function onNetMSG(ev):void
+		{
+			
+		}
+		public function onNetClose(ev):void
 		{
 			
 		}

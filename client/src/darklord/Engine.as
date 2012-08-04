@@ -32,20 +32,31 @@ package darklord
 		private var view:View3D;
 		private var awayStats:AwayStats;
 		private var menu:MenuState;
+		public var net:NetManager;
+		
+		public const gameWidth:int = 800;
+		public const gameHeight:int = 600;
+
 		
 		public function Engine():void
 		{
+			this.mouseChildren = true;
+			this.name = "game engine";
+			trace(this.name);
 		}
 		
 		//init- create scene/view and first game state stack
 		public function init():void
 		{
+			this.net = new NetManager(this);
+			
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
 			
 			view = new View3D();
 			view.backgroundColor = 0x662222;
 			view.antiAlias = 4;
+			view.name = "3d view";
 			
 			addChild(view);
 			
@@ -59,9 +70,11 @@ package darklord
 		//load first menu state push it onto the stack
 		private function initState():void
 		{
-			menu = new MenuState();
+			menu = new MenuState(this);
 			menu.init(view);
 			states.push(menu);
+			
+			addChildAt(menu,1);
 			
 		}
 			
@@ -69,7 +82,7 @@ package darklord
 		{
 			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
-			stage.addEventListener(MouseEvent.CLICK, onMouseClick);
+			this.addEventListener(MouseEvent.CLICK, onMouseClick);
 			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseDown);
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
@@ -92,6 +105,7 @@ package darklord
 		private function onMouseClick(ev:Event):void 
 		{
 			if(states.length < 1) return;
+			
 			(states[0] as GameState).onMouseClick(ev);
 		}
 		private function onMouseUp(ev:Event):void 
@@ -116,7 +130,29 @@ package darklord
 			(states[0] as GameState).onKeyUp(ev);
 		}
 		
-		
+		//Network Events
+		public function onNetConnect(ev):void
+		{
+			trace("connected to the server!");
+			if(states.length < 1) return;
+			(states[0] as GameState).onNetConnect(ev);
+		}
+		public function onNetMSG(ev):void
+		{
+			trace(ev);
+			if(states.length < 1) return;
+			(states[0] as GameState).onNetMSG(ev);
+		}
+		public function onNetClose(ev):void
+		{
+			if(states.length < 1) return;
+			(states[0] as GameState).onNetClose(ev);
+		}
+		public function onNetError(ev):void
+		{
+			trace("Network error!");
+			trace(ev);
+		}
 		
 		
 		//UPDATE->RENDER loop
