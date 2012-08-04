@@ -1,8 +1,7 @@
 package darklord
 {
-	import away3d.containers.Scene3D;
-	import away3d.containers.View3D;
-
+	
+	
 	/**
 	 * darklord.GameState
 	 * 
@@ -10,6 +9,11 @@ package darklord
 	 * links to engines scene object
 	 * 
 	 * */
+	
+	import away3d.containers.Scene3D;
+	import away3d.containers.View3D;
+
+	import flash.events.Event;
 
 		
 	public class GameState
@@ -36,6 +40,42 @@ package darklord
 		public function render():void
 		{
 			view.render();
+		}
+		
+		
+		
+		//INPUT handlers - state overwrites any it needs
+		// INPUT HANDLERS //
+		public function onMouseClick(ev:Event):void 
+		{
+			
+		}
+		public function onMouseUp(ev:Event):void 
+		{
+			
+		}
+		public function onMouseDown(ev:Event):void 
+		{
+			
+		}
+		
+		public function onKeyDown(ev:Event):void 
+		{
+			
+		}
+		public function onKeyUp(ev:Event):void 
+		{
+			
+		}
+		
+		//place holders for network events
+		public function onNetConnect():void
+		{
+			
+		}
+		public function onNetMSG():void
+		{
+			
 		}
 	}
 }

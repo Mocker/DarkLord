@@ -21,6 +21,8 @@ package darklord
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
+	import flash.events.MouseEvent;
 	
 	
 	public class Engine extends Sprite
@@ -66,6 +68,11 @@ package darklord
 		private function initListeners():void
 		{
 			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
+			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseUp);
+			stage.addEventListener(MouseEvent.CLICK, onMouseClick);
+			stage.addEventListener(MouseEvent.MOUSE_UP, onMouseDown);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
+			stage.addEventListener(KeyboardEvent.KEY_UP, onKeyUp);
 		}
 		
 		//run - enable game loop to run update/render
@@ -80,16 +87,50 @@ package darklord
 			
 		}
 		
+		
+		// INPUT HANDLERS //
+		private function onMouseClick(ev:Event):void 
+		{
+			if(states.length < 1) return;
+			(states[0] as GameState).onMouseClick(ev);
+		}
+		private function onMouseUp(ev:Event):void 
+		{
+			if(states.length < 1) return;
+			(states[0] as GameState).onMouseUp(ev);
+		}
+		private function onMouseDown(ev:Event):void 
+		{
+			if(states.length < 1) return;
+			(states[0] as GameState).onMouseDown(ev);
+		}
+		
+		private function onKeyDown(ev:Event):void 
+		{
+			if(states.length < 1) return;
+			(states[0] as GameState).onKeyDown(ev);
+		}
+		private function onKeyUp(ev:Event):void 
+		{
+			if(states.length < 1) return;
+			(states[0] as GameState).onKeyUp(ev);
+		}
+		
+		
+		
+		
+		//UPDATE->RENDER loop
 		private function onEnterFrame(ev:Event):void 
 		{
-			var state = states.shift();
+			if(states.length < 1) return; //no states on the stack
+			var state = states[0]; //grab first state on the stack
 			var currentState:GameState = state as GameState;
 			
 			currentState.update();
 			currentState.render();
 			
 			
-			states.unshift(state);
+			
 			//view.render();
 		}
 	}
