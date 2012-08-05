@@ -16,7 +16,7 @@ function main() {
 		buildings : []
 	};
 	dl.mobs = [];
-	dl.pcs = [];
+	dl.pcs = {};
 	populateMap();
 
 	dl.memc = new mc.Client();
@@ -24,7 +24,7 @@ function main() {
 		console.log("Connected to memcache");
 	});
 
-	setInterval(update,10);
+	setInterval(update,30);
 
 	var server = net.createServer(function(socket){
 		var con = new connection(socket,this);
@@ -44,7 +44,7 @@ function main() {
 	//add shit at random to the map
 	function populateMap()
 	{
-		var numOrcs = Math.floor(Math.random()*20+10);
+		var numOrcs = Math.floor(Math.random()*20+50);
 		for(var i=0;i<numOrcs;i++){
 			var orc = {
 				type: types.Entities.ORC,
@@ -87,7 +87,7 @@ function main() {
 				if(decide > 0.9) mob.status = "wandering";
 			}
 			if(oldMapX != mob.mapX || oldMapY != mob.mapY || oldStatus != mob.status){
-				updatePlayersMob(mob);
+				updatePlayersMobs(mob);
 			}
 		}
 	}
@@ -99,9 +99,18 @@ function main() {
 //mob changed - push update to players in same mapx,mapy
 function updatePlayersMobs(mob)
 {
-	console.log(dl.connections);
+	if(!dl.pcs) return;
+	//console.log("update map "+mob.mapX+","+mob.mapY);
+	for(var user in dl.pcs){
+		var pc = dl.pcs[user];
+		if(pc.mapX == mob.mapX && pc.mapY == mob.mapY){
+			var mobStr = JSON.stringify(mob);
+			pc.s.write(types.Messages.MOB_MOVE+','+mobStr+"\0",'utf8');
+			console.log("updated "+user);
+		}
+	}
+	
 }
-
 //attempt to move a mob or npc speed units in the direction
 //if at edge of map tile attempt to move to next map, if can't return false
 // dir- "north,south,west,east"
@@ -182,6 +191,9 @@ function connection(socket,controller) {
 
 	function onClose(e)
 	{
+		if(player && player.user){
+			 delete dl.pcs[player.user];
+		}
 		console.log(addr+" disconnected");
 		isConnected = false;
 	}
@@ -205,6 +217,7 @@ function connection(socket,controller) {
 	function onData(d)
 	{
 		var parts = msgRegEX.exec(d);
+		if(!parts){ console.log(addr+" INVALID "+d); return; }
 		console.log(addr+" "+parts[1]+" "+parts[2]);
 		
 		if(!player)
@@ -238,16 +251,20 @@ function connection(socket,controller) {
 						queue: [],
 						events: []
 						};
-						player.mapX = Math.floor(Math.random()*dl.map.map.FakeMap.length);
-						player.mapY = Math.floor(Math.random()*dl.map.map.FakeMap.length);
-						player.x = Math.floor(Math.random()*dl.map.map.FakeMap[0].length);
-						player.y = Math.floor(Math.random()*dl.map.map.FakeMap[0].length);
+						player.mapX = Math.floor(Math.random()*types.FakeMap.length);
+						player.mapY = Math.floor(Math.random()*types.FakeMap.length);
+						player.x = Math.floor(Math.random()*types.FakeMap[0].length);
+						player.y = Math.floor(Math.random()*types.FakeMap[0].length);
 						dl.pcs[logins[1]] = player;
 					
 						dl.memc.set('PLAYER_'+logins[1],JSON.stringify(player),function(err,response){
 						if(err){ console.log("error setting player info"); console.log(err); return; }
 						console.log("player saved");
 						send("1,Player logged in");
+						player.con = this;
+						player.s = s;
+						dl.pcs[player.user] = player;
+						console.log(dl.pcs);
 });
 
 					} else { //user loaded into response
@@ -269,7 +286,14 @@ function connection(socket,controller) {
 					 player = chkplayer;
 					 console.log("Player loaded");
 					 send("1,Player logged in");
-
+					 player.con = this;
+					 player.s = s;
+					 if(player.mapX == undefined){
+					 player.x=2; player.y = 2;
+					 player.mapX = 2; player.mapY = 2;
+					}
+					dl.pcs[player.user] = player;
+					 console.log(dl.pcs);
 					}
 
 				});
