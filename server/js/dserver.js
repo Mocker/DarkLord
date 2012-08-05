@@ -49,8 +49,11 @@ function main() {
 			var orc = {
 				type: types.Entities.ORC,
 				hp: 10,
-				x: Math.floor(Math.random()*(types.FakeMap.length-1)),
-				y: Math.floor(Math.random()*(types.FakeMap.length-1))
+				mobID: "orc"+i,
+				mapX: Math.floor(Math.random()*(types.FakeMap.length-1)),
+				mapY: Math.floor(Math.random()*(types.FakeMap.length-1)),
+				x: Math.floor(Math.random()*(types.FakeMap[0].length-1)),
+				y: Math.floor(Math.random()*(types.FakeMap[0].length-1))
 			};
 			var chkStatus = Math.random();
 			if(chkStatus < 0.5) orc.status = "wandering";
@@ -70,26 +73,88 @@ function main() {
 		{
 			var mob = dl.mobs[i];
 			var decide = Math.random();
+			var oldMapX = mob.mapX, oldMapY = mob.mapY; //track these if they change push update
+			var oldStatus = mob.status;
 			if(mob.status && mob.status == 'wandering'){
 				//move or go to sleep
 				if(decide >0.9) mob.status = "sleeping";
-				else if(decide > 0.75 && mob.x > 1) mob.x -= 1;
-				else if(decide > 0.6 && mob.x < types.FakeMap.length-2) mob.x += 1;
-				else if(decide > 0.45 && mob.y > 1) mob.y -= 1;
-				else if(decide > 0.3 && mob.y < types.FakeMap.length-2) mob.y += 1;
+				else if(decide > 0.75 && mob.x > 1) moveMob("west",mob);
+				else if(decide > 0.6 && mob.x < types.FakeMap.length-2) moveMob("east",mob);
+				else if(decide > 0.45 && mob.y > 1) moveMob("south",mob);
+				else if(decide > 0.3 && mob.y < types.FakeMap.length-2) moveMob("north",mob);
 			}
 			else if(mob.status && mob.status == "sleeping"){
 				if(decide > 0.9) mob.status = "wandering";
 			}
+			if(oldMapX != mob.mapX || oldMapY != mob.mapY || oldStatus != mob.status){
+				updatePlayersMob(mob);
+			}
 		}
-
-
 	}
 
 
 
 }
 
+//mob changed - push update to players in same mapx,mapy
+function updatePlayersMobs(mob)
+{
+	console.log(dl.connections);
+}
+
+//attempt to move a mob or npc speed units in the direction
+//if at edge of map tile attempt to move to next map, if can't return false
+// dir- "north,south,west,east"
+function moveMob(dir,mob)
+{
+	//var newX = false, newY = false;
+	if(dir=="north"){
+		if(mob.y < types.FakeMap[0].length-1) mob.y += 1;
+		else if(mob.mapY < types.FakeMap.length-1){
+			mob.mapY += 1;
+			mob.y = 0;
+		}
+		else return false;
+	}
+	else if(dir=="south"){
+		if(mob.y > 0) mob.y -= 1;
+		else if(mob.mapY > 0){
+			mob.mapY -= 1;
+			mob.y = types.FakeMap[0].length-1;
+		}
+		else return false;
+
+	}
+	else if(dir=="west"){
+		if(mob.x > 0) mob.x -= 1;
+		else if(mob.mapX> 0){
+			mob.mapX -= 1;
+			mob.x = types.FakeMap[0].length-1;
+		}
+		else return false;
+	}
+	else if(dir=="east"){
+		if(mob.x < types.FakeMap[0].length-1) mob.x += 1;
+		else if(mob.mapX < types.FakeMap.length-1){
+			mob.mapX += 1;
+			mob.x = 0;
+		}
+		else return false;
+	}
+}
+
+
+//get a list of mobs on the current submap
+function getMobs(mapX,mapY)
+{
+	var moblist = [];
+	for(var i in dl.mobs)
+	{
+		if(dl.mobs[i].mapX==mapX && dl.mobs[i].mapY==mapY){
+
+		}
+	}
+}
 
 function connection(socket,controller) {
 	var m = controller;
@@ -173,6 +238,10 @@ function connection(socket,controller) {
 						queue: [],
 						events: []
 						};
+						player.mapX = Math.floor(Math.random()*dl.map.map.FakeMap.length);
+						player.mapY = Math.floor(Math.random()*dl.map.map.FakeMap.length);
+						player.x = Math.floor(Math.random()*dl.map.map.FakeMap[0].length);
+						player.y = Math.floor(Math.random()*dl.map.map.FakeMap[0].length);
 						dl.pcs[logins[1]] = player;
 					
 						dl.memc.set('PLAYER_'+logins[1],JSON.stringify(player),function(err,response){
