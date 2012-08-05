@@ -1,15 +1,24 @@
 var fs = require('fs');
 var net = require('net');
+var mc = require('mc');
 
 function main() {
+	console.log("Main server initiated");
 	var socket;
 	var connections = [];
 
+	var memc = new mc.Client();
+	memc.connect(function(){
+		console.log("Connected to memcache");
+	});
+
+
 	var server = net.createServer(function(socket){
-		var con = new connection(socket);
+		var con = new connection(socket,this);
 		connections.push(con);
 	});
 
+	console.log("Listening to port 9001");
 	server.listen(9001);
 	//server.on("error",main.onServerError);
 
@@ -22,7 +31,8 @@ function main() {
 }
 
 
-function connection(socket) {
+function connection(socket,controller) {
+	var m = controller;
 	var s = socket;
 	var addr;
 	var isConnected = false;
@@ -60,6 +70,6 @@ function connection(socket) {
 	}
 }
 
-main();
+var central = new main();
 
 
