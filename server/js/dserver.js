@@ -40,7 +40,15 @@ function connection(socket,controller) {
 	s.on("connect", onConnect);
 	s.on("data", onData);
 	s.on("error",onError);
+	s.on("close",onClose);
 	return this;
+
+
+	function onClose(e)
+	{
+		console.log(addr+" disconnected");
+		isConnected = false;
+	}
 
 	function onEvent(e)
 	{
@@ -54,12 +62,14 @@ function connection(socket,controller) {
 		addr =s.remoteAddress;
 		//addr = s.remoteAddress;
 		isConnected = true;
-		s.write('hello '+addr,'utf8');
+		send("hello "+addr);
+		//s.write('hello '+addr+"\0",'utf8',onWrite);
 	}
 
 	function onData(d)
 	{
 		console.log(addr+" "+d);
+		//s.write("Received! "+"\0","utf8",onWrite);
 	}
 
 	function onError(e)
@@ -68,6 +78,21 @@ function connection(socket,controller) {
 		if(isConnected) console.log(addr);
 		console.log(e);
 	}
+	function send(d)
+	{
+		if(!isConnected) return;
+		s.write(d+"\0","utf8");
+	}
+	function onWrite(e)
+	{
+		//console.log("Finished writing to "+addr);
+	}
+}
+
+//helper function cause i keep mixing up as3's trace and console.log
+function trace(obj)
+{
+	console.log(obj);
 }
 
 var central = new main();
