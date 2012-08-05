@@ -1,11 +1,13 @@
 var fs = require('fs');
 var net = require('net');
 var mc = require('mc');
+var types = require('./types.js');
 
 function main() {
 	console.log("Main server initiated");
 	var socket;
 	var connections = [];
+	console.log(types);
 
 	var memc = new mc.Client();
 	memc.connect(function(){
@@ -34,6 +36,7 @@ function main() {
 function connection(socket,controller) {
 	var m = controller;
 	var s = socket;
+	var msgRegEX = /(\w+?),(.+)/ ;
 	var addr;
 	var isConnected = false;
 	console.log("new connection created- "+socket.remoteAddress);
@@ -68,7 +71,8 @@ function connection(socket,controller) {
 
 	function onData(d)
 	{
-		console.log(addr+" "+d);
+		var parts = msgRegEX.exec(d);
+		console.log(addr+" "+parts[1]+" "+parts[2]);
 		//s.write("Received! "+"\0","utf8",onWrite);
 	}
 
