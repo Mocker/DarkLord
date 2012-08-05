@@ -92,8 +92,9 @@ package darklord.states
 			submitBTN.defaultTextFormat = btnFormat;
 			submitBTN.background=true; submitBTN.backgroundColor=0x331111;
 			submitBTN.border=true; submitBTN.borderColor=0xcccccc;
-			submitBTN.text = "Login/Register";
+			submitBTN.text = "Login/Register"; submitBTN.height = 30; submitBTN.selectable = false;
 			submitBTN.x = eng.gameWidth/2 - submitBTN.width/2; submitBTN.y = passTXT.y + 100;
+			
 			
 			submitBTN.addEventListener(MouseEvent.CLICK,onSubmitClick);
 			
