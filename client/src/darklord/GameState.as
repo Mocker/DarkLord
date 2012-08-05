@@ -14,6 +14,7 @@ package darklord
 	import away3d.containers.View3D;
 	
 	import flash.display.Sprite;
+	import flash.events.DataEvent;
 	import flash.events.Event;
 
 		
@@ -79,11 +80,15 @@ package darklord
 		{
 			
 		}
-		public function onNetMSG(ev):void
+		public function onNetMSG(ev:DataEvent):void
 		{
 			
 		}
 		public function onNetClose(ev):void
+		{
+			
+		}
+		public function onNetError(ev):void
 		{
 			
 		}

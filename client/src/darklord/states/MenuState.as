@@ -2,6 +2,7 @@ package darklord.states
 {
 	import away3d.containers.View3D;
 	
+	import darklord.Alert;
 	import darklord.Engine;
 	import darklord.GameState;
 	
@@ -9,6 +10,7 @@ package darklord.states
 	import flash.display.BitmapData;
 	import flash.display.GradientType;
 	import flash.display.Sprite;
+	import flash.events.DataEvent;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.filters.DropShadowFilter;
@@ -24,6 +26,9 @@ package darklord.states
 		private var passTXT:TextField = new TextField();
 		private var googleBTN:TextField = new TextField();
 		private var facebookBTN:TextField = new TextField();
+		
+		public var status:String = "menu";
+		private var alert:Alert;
 		
 		public function MenuState(engine:Engine)
 		{
@@ -43,8 +48,8 @@ package darklord.states
 			this.addChild(bgRect);
 			
 			var titleBMP:Bitmap = new TitleGFX(); titleBMP.alpha = 0.5;
-			bgRect.graphics.beginBitmapFill(titleBMP.bitmapData);
-			bgRect.graphics.drawRect(0,0, this.eng.gameWidth, this.eng.gameHeight);
+			//bgRect.graphics.beginBitmapFill(titleBMP.bitmapData);
+			//bgRect.graphics.drawRect(0,0, this.eng.gameWidth, this.eng.gameHeight);
 			
 			var titleText:TextField = new TextField();
 			var titleFormat:TextFormat = new TextFormat("null",50,0xffffff,true);
@@ -83,6 +88,15 @@ package darklord.states
 			userTXT.addEventListener(MouseEvent.CLICK,onInputClick);
 			passTXT.addEventListener(MouseEvent.CLICK,onInputClick);
 			
+			var submitBTN:TextField = new TextField();
+			submitBTN.defaultTextFormat = btnFormat;
+			submitBTN.background=true; submitBTN.backgroundColor=0x331111;
+			submitBTN.border=true; submitBTN.borderColor=0xcccccc;
+			submitBTN.text = "Login/Register";
+			submitBTN.x = eng.gameWidth/2 - submitBTN.width/2; submitBTN.y = passTXT.y + 100;
+			
+			submitBTN.addEventListener(MouseEvent.CLICK,onSubmitClick);
+			
 			googleBTN.defaultTextFormat = btnFormat;
 			facebookBTN.defaultTextFormat = btnFormat;
 			
@@ -103,19 +117,41 @@ package darklord.states
 			facebookBTN.addEventListener(MouseEvent.CLICK,onFacebookClick);
 			googleBTN.addEventListener(MouseEvent.CLICK,onGoogleClick);
 			
-			//this.addChild(userTXT); this.addChild(passTXT); 
-			this.addChild(googleBTN); this.addChild(facebookBTN);
+			this.addChild(userTXT); this.addChild(passTXT); this.addChild(submitBTN);
+			//this.addChild(googleBTN); this.addChild(facebookBTN);
 			
 			
+			this.alert = new Alert();
+			this.addChild(alert);
+		}
+		
+		public function onSubmitClick(ev:MouseEvent):void
+		{
+			if(status != "menu") return;
+			if(!eng.net.isConnected){ alert.show("Not connected to the server!"); return; }
+			if(userTXT.text=="Enter Username" || passTXT.text == "Enter Password"){
+				alert.show("Please enter an existing username/password or create a new one");
+				return;
+			}
+			if(userTXT.text.indexOf('~') > -1 || passTXT.text.indexOf("~") > -1){
+				alert.show("Invalid character in password or username. Alphanumeric only");
+				return;
+			}
+			this.status = "logging in";
+			eng.net.sendData("1,"+userTXT.text+"~"+passTXT.text);
 		}
 		
 		public function onGoogleClick(ev:MouseEvent):void
 		{
 			trace("google btn clicked");
+			eng.net.loginGoogle();
+			if(eng.net.isConnected){
+				eng.net.sendData("1,Google button clicked");
+			}
 		}
 		public function onFacebookClick(ev:MouseEvent):void
 		{
-			trace("facebook btn clicked");
+			eng.net.loginFB();
 		}
 		
 		public function onInputClick(ev:MouseEvent):void
@@ -146,6 +182,20 @@ package darklord.states
 		{
 			
 			super.render();
+		}
+		
+		override public function onNetMSG(ev:DataEvent):void
+		{
+			alert.show(ev.data);	
+			//trace("Menu received net msg"); trace(ev);
+		}
+		override public function onNetClose(ev):void
+		{
+			alert.show("Connection to server dropped!");
+		}
+		override public function onNetError(ev):void
+		{
+			alert.show("Network Error!");
 		}
 	}
 }

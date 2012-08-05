@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- saved from url=(0014)about:internet -->
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en" xmlns:fb="http://www.facebook.com/2008/fbml"> 
     <!-- 
     Smart developers always View Source. 
     
@@ -35,6 +35,7 @@
         <!-- END Browser History required section -->  
             
         <script type="text/javascript" src="swfobject.js"></script>
+        <script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>	
         <script type="text/javascript">
             // For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection. 
             var swfVersionStr = "11.1.0";
@@ -44,7 +45,7 @@
             var params = {};
             params.quality = "high";
             params.bgcolor = "#000000";
-            params.allowscriptaccess = "sameDomain";
+            params.allowscriptaccess = "always";
             params.allowfullscreen = "true";
             params.wmode = "direct";
             var attributes = {};
@@ -52,10 +53,16 @@
             attributes.name = "DarkLord";
             attributes.align = "middle";
             swfobject.embedSWF(
-                "DarkLord.swf", "flashContent", 
-                "960", "540", 
-                swfVersionStr, xiSwfUrlStr, 
-                flashvars, params, attributes);
+                "DarkLord.swf", 
+                "flashContent", 
+                "800", 
+                "600", 
+                swfVersionStr, 
+                xiSwfUrlStr, 
+                flashvars, 
+                params, 
+                attributes
+                );
             // JavaScript enabled so display the flashContent div in case it is not replaced with a swf object.
             swfobject.createCSS("#flashContent", "display:block;text-align:left;");
         </script>
@@ -65,6 +72,33 @@
              JavaScript and Flash plug-in support is available. The div is initially hidden so that it doesn't show
              when JavaScript is disabled.
         -->
+        <div id="dvButton"><input type="button" value="Logged In?" onClick="checkFBLogin()"></div>
+        <script type="text/javascript">
+        	function checkFBLogin()
+        	{
+			        FB.getLoginStatus(function(response) {
+					  if (response.status === 'connected') {
+					  	trace('fb connected');
+					    // the user is logged in and has authenticated your
+					    // app, and response.authResponse supplies
+					    // the user's ID, a valid access token, a signed
+					    // request, and the time the access token 
+					    // and signed request each expire
+					    var uid = response.authResponse.userID;
+					    var accessToken = response.authResponse.accessToken;
+					  } else if (response.status === 'not_authorized') {
+					  	trace('fb not authorized');
+					    // the user is logged in to Facebook, 
+					    // but has not authenticated your app
+					  } else {
+					  	trace('fb isnt logged in');
+					    // the user isn't logged in to Facebook.
+					  }
+					 });
+        	}
+        </script>
+        
+        <div id="fb-root"></div>
         <div id="flashContent">
             <p>
                 To view this page ensure that Adobe Flash Player version 
@@ -78,14 +112,14 @@
         </div>
         
         <noscript>
-            <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="960" height="540" id="DarkLord">
+            <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="800" height="600" id="DarkLord">
                 <param name="movie" value="DarkLord.swf" />
                 <param name="quality" value="high" />
                 <param name="bgcolor" value="#000000" />
                 <param name="allowScriptAccess" value="sameDomain" />
                 <param name="allowFullScreen" value="true" />
                 <!--[if !IE]>-->
-                <object type="application/x-shockwave-flash" data="DarkLord.swf" width="960" height="540">
+                <object type="application/x-shockwave-flash" data="DarkLord.swf" width="800" height="600">
                     <param name="quality" value="high" />
                     <param name="bgcolor" value="#000000" />
                     <param name="allowScriptAccess" value="sameDomain" />

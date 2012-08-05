@@ -49,6 +49,7 @@ package darklord
 		public function init():void
 		{
 			this.net = new NetManager(this);
+			this.net.connect();
 			
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			stage.align = StageAlign.TOP_LEFT;
@@ -139,12 +140,13 @@ package darklord
 		}
 		public function onNetMSG(ev):void
 		{
-			trace(ev);
+			//trace(ev);
 			if(states.length < 1) return;
 			(states[0] as GameState).onNetMSG(ev);
 		}
 		public function onNetClose(ev):void
 		{
+			trace("Connection dropped");
 			if(states.length < 1) return;
 			(states[0] as GameState).onNetClose(ev);
 		}
@@ -152,6 +154,8 @@ package darklord
 		{
 			trace("Network error!");
 			trace(ev);
+			if(states.length < 1) return;
+			(states[0] as GameState).onNetError(ev);
 		}
 		
 		
