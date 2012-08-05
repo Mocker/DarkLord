@@ -19,7 +19,7 @@ var types = {
 		MOB_MOVE: 17, //mob moves within rnage of player
 		MOB_ATTACK: 18,
 		MOB_HURT: 19,
-		MOB_DIE: 10
+		MOB_DIE: 10,
 		PLAYER_HURT: 20,
 		PLAYER_STATUS: 21, //status change-health or status effect
 		PLAYER_POSITION: 22,

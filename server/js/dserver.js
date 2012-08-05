@@ -2,32 +2,33 @@ var fs = require('fs');
 var net = require('net');
 var mc = require('mc');
 var types = require('./types.js');
+var dl = {} ; //global namespace to store.. everythiiing
 
 function main() {
 	console.log("Main server initiated");
 	var socket;
-	var connections = [];
-	var events = { //events queue. global and per player
+	dl.connections = [];
+	dl.events = { //events queue. global and per player
 		global: []
 	};
-	var map = {
-		map = types.FakeMap,
-		buildings = []
+	dl.map = {
+		map : types.FakeMap,
+		buildings : []
 	};
-	var mobs = [];
-	var pcs = [];
+	dl.mobs = [];
+	dl.pcs = [];
 	populateMap();
 
-	var memc = new mc.Client();
-	memc.connect(function(){
+	dl.memc = new mc.Client();
+	dl.memc.connect(function(){
 		console.log("Connected to memcache");
 	});
 
-	setInterval(10,update);
+	setInterval(update,10);
 
 	var server = net.createServer(function(socket){
 		var con = new connection(socket,this);
-		connections.push(con);
+		dl.connections.push(con);
 	});
 
 	console.log("Listening to port 9001");
@@ -41,7 +42,7 @@ function main() {
 	}
 
 	//add shit at random to the map
-	var populateMap = function()
+	function populateMap()
 	{
 		var numOrcs = Math.floor(Math.random()*20+10);
 		for(var i=0;i<numOrcs;i++){
@@ -54,20 +55,20 @@ function main() {
 			var chkStatus = Math.random();
 			if(chkStatus < 0.5) orc.status = "wandering";
 			else orc.status = "sleeping";
-			mobs.push(orc);
+			dl.mobs.push(orc);
 		}
 		console.log("added "+numOrcs+" orcs");
-		console.log(mobs);
+		console.log(dl.mobs);
 	}
 
-	var update = function()
+	function update()
 	{
 		//each game tick update game world
 
 		//process mobs (orcs)
-		for(var i in mobs)
+		for(var i in dl.mobs)
 		{
-			var mob = mobs[i];
+			var mob = dl.mobs[i];
 			var decide = Math.random();
 			if(mob.status && mob.status == 'wandering'){
 				//move or go to sleep
@@ -97,8 +98,9 @@ function connection(socket,controller) {
 	var loginRegEX = /(.+?)~(.+)/;
 	var addr;
 	var isConnected = false;
-	var userInfo = false;
+	var player = false;
 	console.log("new connection created- "+socket.remoteAddress);
+	console.log(m.memc);
 	s.on("connect", onConnect);
 	s.on("data", onData);
 	s.on("error",onError);
@@ -140,25 +142,64 @@ function connection(socket,controller) {
 		var parts = msgRegEX.exec(d);
 		console.log(addr+" "+parts[1]+" "+parts[2]);
 		
-		if(!userInfo)
+		if(!player)
 		{
 			if(parts[1] == types.Messages.LOGIN)
 			{
 				if(parts.length < 3){ console.log("Invalid login length");  return; }
-				var logins = loginRegEx.exec(parts[2]);
+				var logins = loginRegEX.exec(parts[2]);
 				if(!logins || logins.length < 3){
 					console.log("Error: username/pwd invalid format: "+parts[2]);
 					send("0,Error: Username/Password invalid format");
 					return;
 				}
 				//check cache for user info
-				m.memc.get('PLAYER '+logins[1], function(err, response) {
+				var whiteReg = /\s/;
+				if(whiteReg.test(logins[1])){
+					console.log("username cant contain whitespace");
+					send("0,Username cannot contain spaces");
+				}
+				dl.memc.get('PLAYER_'+logins[1], function(err, response) {
 					if(err){ // create user
-						console.log(err);
+						if(err.type!='NOT_FOUND'){
+						console.log('Login error');console.log(err);
+						send("0,Error fetching player");
+						return;
+						}
+						console.log('Creating Player '+logins[1]);
+						player = {
+						user: logins[1],
+						pwd: logins[2],
+						queue: [],
+						events: []
+						};
+						dl.pcs[logins[1]] = player;
+					
+						dl.memc.set('PLAYER_'+logins[1],JSON.stringify(player),function(err,response){
+						if(err){ console.log("error setting player info"); console.log(err); return; }
+						console.log("player saved");
+						send("1,Player logged in");
+});
 
 					} else { //user loaded into response
-						console.log("Player loaded");
+						console.log("Player found");
 						console.log(response);
+						var pstring = response['PLAYER_'+logins[1]];
+					  chkplayer = JSON.parse(pstring );
+					  console.log(chkplayer);
+					  if(!chkplayer){
+						console.log("invalid json");
+						send("0,player data invalid");
+						return;
+					  }
+					  if(chkplayer.pwd != logins[2]){
+						console.log("passmismatch: "+chkplayer.pwd+" ~ "+logins[2]);
+						send("0,Invalid password");
+						return;
+					 }
+					 player = chkplayer;
+					 console.log("Player loaded");
+					 send("1,Player logged in");
 
 					}
 
