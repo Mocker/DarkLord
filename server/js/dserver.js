@@ -5,12 +5,13 @@ function main() {
 	var socket;
 	var connections = [];
 
-	var server = net.createServer(function(socket)){
+	var server = net.createServer(function(socket){
 		var con = new connection(socket);
 		connections.push(con);
-	}
+	});
 
-	server.on("error",onServerError);
+	server.listen(9001);
+	//server.on("error",main.onServerError);
 
 	var onServerError = function(e)
 	{
@@ -25,25 +26,33 @@ function connection(socket) {
 	var s = socket;
 	var addr;
 	var isConnected = false;
-	console.log("new connection created- "+socket.remoteAddress());
+	console.log("new connection created- "+socket.remoteAddress);
 	s.on("connect", onConnect);
 	s.on("data", onData);
 	s.on("error",onError);
 	return this;
 
-	var onConnect = function(s)
+	function onEvent(e)
 	{
-		console.log("connection socket connected to "+s.remoteAddress() );
-		addr = s.remoteAddress();
+		console.log("onEvent fired"); console.log(e);
+	}
+
+	function onConnect(e)
+	{
+		console.log("connection socket connected to " );
+		console.log(s.remoteAddress);
+		addr =s.remoteAddress;
+		//addr = s.remoteAddress;
 		isConnected = true;
+		s.write('hello '+addr,'utf8');
 	}
 
-	var onData = function(d)
+	function onData(d)
 	{
-		console.log(s.remoteAddress()+" "+d);
+		console.log(addr+" "+d);
 	}
 
-	var onError = function(e)
+	function onError(e)
 	{
 		console.log("socket error");
 		if(isConnected) console.log(addr);
