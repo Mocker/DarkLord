@@ -30,4 +30,4 @@ function onData(d)
 }
 
 // listen for connections
-server.listen(9001, "127.0.0.1");
+server.listen(9001);
