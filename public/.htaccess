@@ -1,0 +1,5 @@
+Options -Indexes
+DirectoryIndex DarkLord.html
+
+RewriteEngine On
+RewriteRule ^([^/]*)$ /bin/$1
