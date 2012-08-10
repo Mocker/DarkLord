@@ -5,6 +5,7 @@ package darklord.states
 	import darklord.Alert;
 	import darklord.Engine;
 	import darklord.GameState;
+	import darklord.net.NetMSG;
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
@@ -26,6 +27,7 @@ package darklord.states
 		private var passTXT:TextField = new TextField();
 		private var googleBTN:TextField = new TextField();
 		private var facebookBTN:TextField = new TextField();
+		private var statusTXT:TextField = new TextField();
 		
 		public var status:String = "menu";
 		private var alert:Alert;
@@ -43,7 +45,7 @@ package darklord.states
 			
 			var bgRect:Sprite = new Sprite();
 			bgRect.name="bgRect";
-			bgRect.graphics.beginGradientFill(GradientType.LINEAR, [0x000000, 0x660000], [1,1],[0,155]);
+			bgRect.graphics.beginGradientFill(GradientType.LINEAR, [0x000000, 0x440000], [1,1],[0,155]);
 			bgRect.graphics.drawRect(0,0, this.eng.gameWidth, this.eng.gameHeight);
 			this.addChild(bgRect);
 			
@@ -90,6 +92,7 @@ package darklord.states
 			
 			var submitBTN:TextField = new TextField();
 			submitBTN.defaultTextFormat = btnFormat;
+			submitBTN.width = 220;
 			submitBTN.background=true; submitBTN.backgroundColor=0x331111;
 			submitBTN.border=true; submitBTN.borderColor=0xcccccc;
 			submitBTN.text = "Login/Register"; submitBTN.height = 30; submitBTN.selectable = false;
@@ -121,9 +124,25 @@ package darklord.states
 			this.addChild(userTXT); this.addChild(passTXT); this.addChild(submitBTN);
 			//this.addChild(googleBTN); this.addChild(facebookBTN);
 			
+			statusTXT.textColor = 0xffffff;
+			statusTXT.autoSize = flash.text.TextFieldAutoSize.CENTER;
+			statusTXT.text = "Connecting to server..";
+			statusTXT.x = eng.gameWidth/2 - statusTXT.width/2; statusTXT.y = submitBTN.y + 40;
+			statusTXT.height = 20;
+			statusTXT.addEventListener(MouseEvent.CLICK,onReconnect);
+			this.addChild(statusTXT);
+			
 			
 			this.alert = new Alert();
 			this.addChild(alert);
+		}
+		
+		//click on status txt to reconnect
+		public function onReconnect(ev:MouseEvent):void
+		{
+			if(eng.net.isConnected) return;
+			statusTXT.text = 'Reconnecting..';
+			eng.net.connect();
 		}
 		
 		public function onSubmitClick(ev:MouseEvent):void
@@ -139,6 +158,8 @@ package darklord.states
 				return;
 			}
 			this.status = "logging in";
+			eng.net.userInfo['username'] = userTXT.text;
+			eng.net.userInfo['password'] = passTXT.text;
 			eng.net.sendData("1,"+userTXT.text+"~"+passTXT.text);
 		}
 		
@@ -157,7 +178,6 @@ package darklord.states
 		
 		public function onInputClick(ev:MouseEvent):void
 		{
-			trace("input click");
 			var targ:TextField = ev.target as TextField;
 			if(targ.text == "Enter Username" || targ.text == "Enter Password") targ.text = "";
 		}
@@ -185,18 +205,42 @@ package darklord.states
 			super.render();
 		}
 		
-		override public function onNetMSG(ev:DataEvent):void
+		override public function onNetMSG(msg:NetMSG):void
 		{
-			alert.show(ev.data);	
+			//alert.show(msg.dataEvent.data);
+			trace("msg code: "+msg.code+" : "+msg.msg);
+			switch(msg.code)
+			{
+				case 0:
+					if(msg.msg && msg.msg.length > 0) alert.show(msg.msg);
+					else alert.show(msg.dataEvent.data);
+					break;
+				case NetMSG.MSG_LOGGEDIN:
+					statusTXT.text = "Logged in as "+eng.net.userInfo['username'];
+					break;
+				default:
+					trace('not sure how to handle this..');
+			}
+			
 			//trace("Menu received net msg"); trace(ev);
 		}
 		override public function onNetClose(ev):void
 		{
 			alert.show("Connection to server dropped!");
+			statusTXT.text = "Connection dropped. Click to reconnect";
 		}
 		override public function onNetError(ev):void
 		{
 			alert.show("Network Error!");
+		}
+		override public function onNetConnect(ev):void
+		{
+			statusTXT.text = "Connected to server!";
+			if(eng.net.userInfo['username']){
+				//username already set - send login
+				eng.net.sendData("1,"+eng.net.userInfo['username']+"~"+eng.net.userInfo['password']);
+			}
+			else { trace("user info not set"); trace(eng.net.userInfo); }
 		}
 	}
 }

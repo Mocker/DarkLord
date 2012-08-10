@@ -1,12 +1,9 @@
 package darklord
 {
 	import com.facebook.graph.Facebook;
-	//import com.adobe.protocols.oauth2.OAuth2;
-	//import com.adobe.protocols.oauth2.event.*;
-	//import com.adobe.protocols.oauth2.grant.*;
-	
 	
 	import darklord.Config;
+	import darklord.net.NetMSG;
 	
 	import flash.events.*;
 	import flash.external.ExternalInterface;
@@ -29,6 +26,8 @@ package darklord
 		public var isConnected:Boolean = false;
 		public const SERVERIP:String = "darklord.thegup.com";
 		public const SERVERPORT:Number = 9001;
+		private var msgSplit:RegExp = /^(.+?),(.+?)$/ ;
+		private var conRE:RegExp = /^Hello/ ;
 		
 		public var userInfo:Object;
 		
@@ -131,8 +130,10 @@ package darklord
 		
 		private function onDataReceived(ev:DataEvent):void
 		{
-			trace("server: "+ev.data); 
-			eng.onNetMSG(ev);
+			var matches:Array = msgSplit.exec(ev.data);
+			//var msg:NetMSG
+			if(matches && matches.length > 2){ eng.onNetMSG(new NetMSG(matches[1],matches[2],ev) ); }
+			else { eng.onNetMSG( new NetMSG(0,null,ev) ); }
 		}
 		
 		private function onSocketClose(ev:Event):void

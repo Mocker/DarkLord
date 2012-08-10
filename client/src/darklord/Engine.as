@@ -15,6 +15,7 @@ package darklord
 	import away3d.loaders.Loader3D;
 	import away3d.loaders.parsers.Parsers;
 	
+	import darklord.net.NetMSG;
 	import darklord.states.MenuState;
 	
 	import flash.display.Sprite;
@@ -138,7 +139,7 @@ package darklord
 			if(states.length < 1) return;
 			(states[0] as GameState).onNetConnect(ev);
 		}
-		public function onNetMSG(ev):void
+		public function onNetMSG(ev:NetMSG):void
 		{
 			//trace(ev);
 			if(states.length < 1) return;

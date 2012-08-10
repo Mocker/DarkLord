@@ -29,7 +29,7 @@ package darklord
 			msg.wordWrap = true;
 			msg.width = 300; msg.height = 120;
 			msg.border = true; msg.borderColor = 0x000000;
-			msg.background=true; msg.background = this.backgroundColor;
+			msg.background=true; msg.backgroundColor = this.backgroundColor;
 			
 			btn = new TextField(); btn.defaultTextFormat = btnFormat;
 			btn.backgroundColor = 0xeeeeee; btn.background = true;
